@@ -24,9 +24,15 @@ ENV BROWSER_DISABLE_GPU=true
 RUN npm install --only=production                                                                                       
                                                                                                                     
 # Install all supported browsers, else switching browsers requires an image rebuild                                     
-RUN npx playwright install chromium                                                                                     
-# RUN npx playwright install firefox                                                                                     
-                                                                                                                    
-COPY --from=builder /src/.next ./.next                                                                                  
-EXPOSE 3000                                                                                                             
+# Install Playwright browsers with dependencies and set proper permissions
+RUN npx playwright install --with-deps chromium && \
+    mkdir -p /home/sbx_user1051/.cache && \
+    chmod -R 777 /home/sbx_user1051/.cache
+
+# Set environment variables for Playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/sbx_user1051/.cache/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+
+COPY --from=builder /src/.next ./.next
+EXPOSE 3000
 CMD ["npm", "run", "start"]
